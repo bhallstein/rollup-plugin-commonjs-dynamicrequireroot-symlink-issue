@@ -31,28 +31,25 @@ Ideally this should occur regardless of whether the require root is expanded fro
 
 ### Issue
 
+To reproduce both cases, run `bash build.sh` with `dynamicRequireRoot` in rollup.config.js set to either of the example lines located there.
+
 #### 1. dynamicRequireRoot: 'my-app/node_modules'
 
-If you set dynamicRequireRoot to the symlinked path, rollup produces this error:
-```
-[!] (plugin commonjs--resolver) RollupError: "/Users/ben/Desktop/rollup-plugin-commonjs-dynamicrequireroot-symlink-issue/folder/my-app/node_modules/sequelize/lib/dialects/abstract/connection-manager.js" contains dynamic require statements but it is not within the current dynamicRequireRoot "/Users/ben/Desktop/rollup-plugin-commonjs-dynamicrequireroot-symlink-issue/my-app/node_modules". You should set dynamicRequireRoot to "/Users/ben/Desktop/rollup-plugin-commonjs-dynamicrequireroot-symlink-issue/folder/my-app/node_modules/sequelize/lib/dialects/abstract" or one of its parent directories.
-```
+Here the require root is `my-app/node_modules`. Error produced:
 
-It is saying that the file's path is `folder/my-app/node_modules/sequelize/lib/dialects/abstract/connection-manager.js`.path
+_[!] (plugin commonjs--resolver) RollupError: "/Users/ben/Desktop/rollup-plugin-commonjs-dynamicrequireroot-symlink-issue/folder/my-app/node_modules/sequelize/lib/dialects/abstract/connection-manager.js" contains dynamic require statements but it is not within the current dynamicRequireRoot "/Users/ben/Desktop/rollup-plugin-commonjs-dynamicrequireroot-symlink-issue/my-app/node_modules". You should set dynamicRequireRoot to "/Users/ben/Desktop/rollup-plugin-commonjs-dynamicrequireroot-symlink-issue/folder/my-app/node_modules/sequelize/lib/dialects/abstract" or one of its parent directories._
 
-It suggests setting the require root to `folder/my-app/node_modules` instead, as this would be a valid parent of the file path as stated.
+- The error is saying that the file's path is `folder/my-app/node_modules/sequelize/lib/dialects/abstract/connection-manager.js` — i.e. the file path is fully expanded from the symlink.
+- It complains that `my-app/node_modules` is not a parent of `my-app/node_modules/.../<file>.js`.
+- It suggests setting the require root to `folder/my-app/node_modules` instead, as this would be a valid parent of the file path as stated.
 
 #### 2. dynamicRequireRoot: realpathSync('my-app') + '/node_modules'
 
-If you instead set dynamicRequireRoot to the full path, i.e. expanding the symlink, the inverse error is produced:
+Here the require root is `folder/my-app/node_modules` — the expanded form as asked for in the above error. Error produced:
 
-```
-[!] (plugin commonjs) RollupError: "/Users/ben/Desktop/rollup-plugin-commonjs-dynamicrequireroot-symlink-issue/my-app/node_modules/sequelize/lib/dialects/abstract/connection-manager.js" contains dynamic require statements but it is not within the current dynamicRequireRoot "/Users/ben/Desktop/rollup-plugin-commonjs-dynamicrequireroot-symlink-issue/folder/my-app/node_modules". You should set dynamicRequireRoot to "/Users/ben/Desktop/rollup-plugin-commonjs-dynamicrequireroot-symlink-issue/my-app/node_modules/sequelize/lib/dialects/abstract" or one of its parent directories.
-```
-
-i.e. it is now stating the file path as `my-app/node_modules/sequelize/lib/dialects/abstract/connection-manager.js`.
-
-Rollup now makes the opposite complaint, i.e. that `folder/my-app/node_modules` is not a parent of `my-app/node_modules/.../<file>.js`
+_[!] (plugin commonjs) RollupError: "/Users/ben/Desktop/rollup-plugin-commonjs-dynamicrequireroot-symlink-issue/my-app/node_modules/sequelize/lib/dialects/abstract/connection-manager.js" contains dynamic require statements but it is not within the current dynamicRequireRoot "/Users/ben/Desktop/rollup-plugin-commonjs-dynamicrequireroot-symlink-issue/folder/my-app/node_modules". You should set dynamicRequireRoot to "/Users/ben/Desktop/rollup-plugin-commonjs-dynamicrequireroot-symlink-issue/my-app/node_modules/sequelize/lib/dialects/abstract" or one of its parent directories._
+- i.e. it is now stating the file path as `my-app/node_modules/sequelize/lib/dialects/abstract/connection-manager.js` — i.e. the non-expanded form.
+- Rollup now makes the opposite complaint, i.e. that `folder/my-app/node_modules` is not a parent of `my-app/node_modules/.../<file>.js`
 
 To summarise: It's a catch-22:
 
