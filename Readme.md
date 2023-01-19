@@ -53,7 +53,7 @@ _[!] (plugin commonjs) RollupError: "/Users/ben/Desktop/rollup-plugin-commonjs-d
 
 To summarise: It's a catch-22:
 
-- dynamicRequireRoot non-expanded: rollup says '<non-expanded require root path> is not a parent of <expanded file path>'.
-- dynamicRequireRoot expanded: rollup says: '<expanded require root path> is not a parent of <non-expanded file path>'.
+- dynamicRequireRoot non-expanded: rollup says `<non-expanded require root path>` is not a parent of `<expanded file path>`.
+- dynamicRequireRoot expanded: rollup says: `<expanded require root path>` is not a parent of `<non-expanded file path>`.
 
 i.e.: curiously, when dynamicRequireRoot changes between expanded/non-expanded, the file path is considered non-expanded/expanded (i.e. the opposite) which seems to creates a conflict whatever you do.
